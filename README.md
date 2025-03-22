@@ -1,6 +1,8 @@
 # JellyDotPixel
 
-A script for showing the currently playing JellyFin music's album art on your iDotPixel display.
+**A script for showing the currently playing JellyFin music's album art on your iDotPixel display.**
+
+Uses the JellyFin API to get your last playing music, and derkalle4's [iDotMatrix library](https://github.com/derkalle4/python3-idotmatrix-library/tree/main) for iDotMatrix communication (check out his [iDotMatrix client](https://github.com/derkalle4/python3-idotmatrix-client/tree/main) while you're at it).
 
 ## Setup
 
