@@ -1,0 +1,7 @@
+secrets/*
+__pycache__/
+**/_.*
+**/_.*/
+/venv
+/venv_windows
+/output
