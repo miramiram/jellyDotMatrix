@@ -19,7 +19,7 @@ Start by installing:
 Run the following in your terminal:
 
 ```shell
-git clone https://github.com/miramiram/jellyDotMatrix.git
+git clone --recurse-submodules https://github.com/miramiram/jellyDotMatrix.git
 cd jellyDotMatrix
 python -m venv venv
 source ./venv/bin/activate
@@ -33,14 +33,15 @@ python ./display_now_playing.py
 
 ### Windows
 
-Run the following in PowerShell:
+Run the following in PowerShell _(Note that Windows needs the additional "bleak-winrt" pip package)_:
 
 ```powershell
-git clone https://github.com/miramiram/jellyDotMatrix.git
+git clone --recurse-submodules https://github.com/miramiram/jellyDotMatrix.git
 cd jellyDotMatrix
 python -m venv venv
 source .\venv\Scripts\Activate.ps1
 python -m pip install -r .\requirements.txt
+python -m pip install bleak-winrt
 python .\display_now_playing.py
 # At this point the script will create a config file you need to fill in:
 notepad .\secrets\config.toml
