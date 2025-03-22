@@ -50,4 +50,6 @@ python .\display_now_playing.py
 
 #### Jellyfin
 
-The account you use to log in should either be the same you'll be playing music from, or have the account permissions to manage other users.
+- The account you use to log in should either be the same you'll be playing music from, or have the account permissions to manage other users.
+- If you don't want your password in thr config, you can remove it after the script has created the "./secrets/logon_response.json" file, which contains your access token.
+  - If you need to change your password, delete this file to re-generate the access token the next time you run the script.
