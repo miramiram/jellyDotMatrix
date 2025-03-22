@@ -1,4 +1,4 @@
-# JellyDotPixel
+# JellyDotMatrix
 
 **A script for showing the currently playing JellyFin music's album art on your iDotPixel display.**
 
