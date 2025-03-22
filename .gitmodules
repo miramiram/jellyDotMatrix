@@ -1,0 +1,3 @@
+[submodule "submodules/patched_python3_idotmatrix_library"]
+	path = submodules/patched_python3_idotmatrix_library
+	url = https://github.com/foxjojo/python3-idotmatrix-library.git
