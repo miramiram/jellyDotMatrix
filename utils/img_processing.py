@@ -1,12 +1,12 @@
 from PIL import Image, ImageEnhance, ImageFilter
 
 
-def resize_and_process(path, pixel_size:int) -> str:
+def resize_and_process(path, pixel_size:int, contrast=1.5) -> str:
 	out_path = f'{path}.processed.png'
 	dims = (pixel_size, pixel_size) 
 
 	with Image.open(path) as img:
-		img = ImageEnhance.Contrast(img).enhance(2.0)
+		img = ImageEnhance.Contrast(img).enhance(contrast)
 		img = img.filter(ImageFilter.SHARPEN)
 
         # Calculate aspect ratio for (pre-crop) resize
