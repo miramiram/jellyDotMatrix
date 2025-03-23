@@ -1,19 +1,31 @@
 import json
 import os
+import sys
 import subprocess
 import time
 import traceback
 import tomllib
 import asyncio
+import logging
 
 from utils import img_processing
 from utils import jellyfin_helper as jh
 from submodules.patched_python3_idotmatrix_library import idotmatrix as idm
 
 
+class ErrorInterceptor(logging.Handler):
+    def __init__(seld, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def emit(self, record):
+        if record.levelno >= logging.ERROR:
+            raise RuntimeError(f"An error was logged: {record.getMessage()}")
+
+intercept = ['submodules.patched_python3_idotmatrix_library.idotmatrix', 'idotmatrix']
+for mod in intercept:
+    logging.getLogger(mod).addHandler(ErrorInterceptor())
+
 pwd = os.path.dirname(os.path.abspath(__file__))
-
-
 def main():
     config, logon_resp_file = setup()
     asyncio.run(
@@ -63,9 +75,9 @@ async def mainloop(config, logon_resp_file):
     outdir  = f"{pwd}/output"
     os.makedirs(outdir,  exist_ok=True)
 
-    domain        = config["jellyfin_url"]
-    address       = config["iDotPixel_address"]
-    pixel_size    = int(config["iDotPixel_pixel_size"])
+    domain     = config["jellyfin_url"]
+    pixel_size = int(config["iDotPixel_pixel_size"])
+    interval   = int(config['checking_interval'])
 
     if not domain.endswith('/'):
         domain = f"{domain}/"
@@ -75,24 +87,21 @@ async def mainloop(config, logon_resp_file):
     conn = idm.ConnectionManager()
 
 
-    if str(address).lower() == "auto":
-        devices = await conn.scan()
-        if devices:
-            address = devices[0]
+    async def connect() -> str:
+        if str(config['iDotPixel_address']).lower() == "auto":
+            await conn.connectBySearch()
         else:
-            self.logging.error("no target devices found.")
-            raise SystemExit("Couldn't find your iDotMatrix display, check your devices bluetooth.")
+            await conn.connectByAddress(config['iDotPixel_address'])
+        return conn.address
 
-    await conn.connectByAddress(address)
-
-    interval=int(config['checking_interval'])
     while True:
-        if firstloop: 
-            firstloop = False
-        else:
-            await asyncio.sleep(interval)
-
         try:
+            if firstloop: 
+                address = await connect()
+                firstloop = False
+            else:
+                await asyncio.sleep(interval)
+
             rsp=jh.send_get(domain, f'Sessions?ActiveWithinSeconds={interval+1}', logon_resp=logon_resp)
             jh.save(f'{outdir}/out_lastmedia.json', rsp)
 
@@ -133,6 +142,30 @@ async def mainloop(config, logon_resp_file):
             #   by searching for 'album' on https://jmshrv.com/posts/jellyfin-api/
 
 
+        except RuntimeError as e:
+            def is_idotmatrix_connection_error(exception):
+                matches = ["'not found",  
+                           "device address is not set.", 
+                           "no target devices found."]
+                for text in matches:
+                    if text in str(e): return True
+            if is_idotmatrix_connection_error(e):
+                print("Failed to connect to device: ", e)
+                print("Reconnecting...")
+                try:
+                    address = await connect()
+                except RuntimeError as e:
+                    if is_idotmatrix_connection_error(e):
+                        print("Failed to connect to device: ", e)
+                        print("Check that the display is turned on, is nearby, and that bluetooth works properly on the device you're running this on. If you're using a specific iDotMatrix address, try using \"auto\" instead.")
+                        sys.exit()
+                    else:
+                        raise
+                else:
+                    continue
+
+
+            traceback.print_exc()
         except Exception as e:
             traceback.print_exc()
 
